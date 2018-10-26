@@ -8,7 +8,7 @@ class FinnaImageFinder:
         #self.monkeypatch()
         self.client = FinnaClient()        
     
-    def __call__(self, year):
+    def __call__(self, year, n=100):
         a = int(year)
         b = a+1
         res = self.client.search('',
@@ -17,10 +17,14 @@ class FinnaImageFinder:
                                           'online_boolean:1', 
                                           'search_daterange_mv:"[{} TO {}]"'.format(a,b)], 
                                  other={'search_daterange_mv_type':'within'},
-                                 limit=100)
+                                 limit=n)
         records = res['records']
         print(records[0])
         ids = [x['id'] for x in records]
         subjects = [x['subjects'][0][0] if len(x['subjects'])>0 else [] for x in records]
         images = [x['images'][0] if len(x['images'])>0 else [] for x in records]
-        return [ImageRecord(id_, subj, img) for id_, subj, img in zip(ids, subjects, images)]
+        return [ImageRecord(id_, subj, img) for id_, subj, img in zip(ids, subjects, images) if subj != [] and img != []]
+
+if __name__ == '__main__':
+    finder = FinnaImageFinder()
+    print(finder(1900))

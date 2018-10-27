@@ -1,6 +1,10 @@
 from skosmos_client import SkosmosClient
 from rdflib.namespace import SKOS
 import joblib
+from finna_client import FinnaClient
+from finna_image_finder import finna_search
+from requests import HTTPError
+
 
 memory = joblib.Memory('./cache', verbose=0)
 
@@ -33,7 +37,7 @@ def get_branch_route(keyword, sk):
     return br_list
 
 
-#@memory.cache(ignore=['sk'])
+@memory.cache(ignore=['sk'])
 def get_node_parents(node, sk):
     concept = sk.get_concept('yso', node['uri'])
     parent_node = concept.broader()
@@ -51,7 +55,10 @@ def get_keyword_chain(keyword, sk):
         node = results[0]
         node = {'uri': node['uri'], 'prefLabel': node['prefLabel'], }
 
-        chain = get_node_parents(node, sk)
+        try:
+            chain = get_node_parents(node, sk)
+        except HTTPError as e:
+            return None
 
         return chain
 
@@ -105,6 +112,17 @@ def prune_tree(tree, min_count):
         new_children.append(new_child)
     root['children'] = new_children
     return root
+
+@memory.cache
+def get_tree(year):
+    finna = FinnaClient()
+    sk = SkosmosClient()
+    records = finna_search(year, finna)
+    chains = [get_keyword_chain(x.subject, sk) for x in records]
+    chains = [x for x in chains if x is not None]
+    trees = [create_tree(x) for x in chains]
+    return join_trees(trees)
+
 
 if __name__ == '__main__':
 

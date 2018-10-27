@@ -7,26 +7,41 @@
     <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.css" type="text/css"/> -->
 </head>
 <body>
-    <input type="range" id="year-slider" name="year-slider" min="1500" max="2018" value="2018" />
     <br>
+    <label id="year-label" for="year-slider" style="font-size: 1em">Slide to choose year.</label>
+    <input type="range" id="year-slider" name="year-slider" min="1800" max="2018" value="2018" onchange="updateTree()" style="width:90%"/>
+    <br>
+    <!-- <p id="year-display">Current year: </p> -->
     <!-- javascript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.js"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <script>
-        // fetch by current year
-        let year = document.getElementById("year-slider").value
-        let xhr = new XMLHttpRequest();
-        xhr.open("GET", "http://localhost:8080/tree_by_year?year="+year, true); // true = async / false = sync
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === XMLHttpRequest.DONE) {
-                if (xhr.status === 200) { // on successful HTTP 200 OK response
-                    let xhr_result = JSON.parse(xhr.responseText);
-                    console.log(xhr_result.tree.children[1])
-                    drawChart(xhr_result.tree.children[1]) // [1] is "oliot"
+        // fetch data for current year
+        window.addEventListener("load", function (e) {
+            console.log("document loaded!");
+            updateTree();
+        })
+
+        function updateTree() {
+            // get current slider year and update display
+            let year = document.getElementById("year-slider").value
+            let yeardisplay = document.getElementById("year-label");
+            yeardisplay.innerHTML = "Slide to choose year. Current: <strong>" + year + "</strong>";
+            console.log("fetching data: ", year);
+
+            // actually request the data for the year from backend
+            let xhr = new XMLHttpRequest();
+            xhr.open("GET", "http://localhost:8080/tree_by_year?year="+year, true); // true = async / false = sync
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) { // on successful HTTP 200 OK response
+                        let xhr_result = JSON.parse(xhr.responseText);
+                        drawChart(xhr_result.tree.children[1]) // [1] is "oliot"
+                    }
                 }
             }
+            xhr.send();
         }
-        xhr.send();
 
         const width = 1000;
 
@@ -58,7 +73,7 @@
             });
             const height = x1 - x0 + root.dx * 2
 
-            const svg = d3.select("body").append("svg")
+            const svg = d3.select("svg")
                 .attr("width", width)
                 .attr("height", height)
                 .attr("viewBox", [0, 0, width, height])
@@ -75,14 +90,14 @@
             const link = g.append("g")
                 .attr("fill", "none")
                 .attr("stroke", "#555")
-                .attr("stroke-opacity", 0.4)
-                .attr("stroke-width", 1)
             .selectAll("path")
                 .data(root.links())
                 .enter().append("path")
                     .attr("d", d3.linkHorizontal()
                         .x(d => d.y)
-                        .y(d => d.x));
+                        .y(d => d.x))
+                    .attr("stroke-width", d => Math.max(1, Math.log(d.source.data.count)*2))
+                    .attr("opacity", 0.6);
 
             const node = g.append("g")
                 .attr("stroke-linejoin", "round")
@@ -94,22 +109,18 @@
 
             node.append("circle")
                 .attr("fill", d => d.children ? "#555" : "#999")
-                // .attr("r", function (d) {
-                //     console.log(d);
-                //     if (d.depth < 4) return 2.5
-                //     else return d.data.count;
-                // });
-                .attr("r", 2.5);
-                // .on("mouseover", mouseovered(true))
-                // .on("mouseout", mouseovered(false));
+                .attr("r", function (d) {
+                    if (d.depth < 4) return 2.5
+                    else return d.data.count;
+                });
 
             node.append("text")
                 .attr("dy", "0.31em")
                 .attr("x", d => d.children ? -6 : 6)
                 .attr("text-anchor", d => d.children ? "end" : "start")
                 .attr("font-size", function (d) {
-                    // console.log(d);
                     if (d.depth < 4) return 6
+                    else if (d.data.count < 6) return 5
                     else return d.data.count;
                 })
                 .text(d => d.data.prefLabel)
@@ -118,7 +129,7 @@
 
             return svg.node();
         }
-        // drawChart()
     </script>
+    <svg></svg>
 </body>
 </html>

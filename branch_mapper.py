@@ -3,6 +3,7 @@ from rdflib.namespace import SKOS
 import joblib
 from finna_client import FinnaClient
 from finna_image_finder import finna_search
+from requests import HTTPError
 
 
 memory = joblib.Memory('./cache', verbose=0)
@@ -54,7 +55,10 @@ def get_keyword_chain(keyword, sk):
         node = results[0]
         node = {'uri': node['uri'], 'prefLabel': node['prefLabel'], }
 
-        chain = get_node_parents(node, sk)
+        try:
+            chain = get_node_parents(node, sk)
+        except HTTPError as e:
+            return None
 
         return chain
 

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Ontology Yggdrasil</title>
+    <!-- stylesheets -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.css" type="text/css"/>
+</head>
+<body>
+    <label>
+    <input type="range" id="year-slider" name="year-slider" min="1500" max="2018" value="2018" />
+    <div id="tree-simple" style="width:335px; height: 160px"> </div>
+
+    <!-- javascript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.2.7/raphael.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.js"></script>
+    <!-- <script src="vendor/raphael.js"></script> -->
+    <!-- <script src="Treant.min.js"></script> -->
+    <script>
+        // fetch by year
+        let year = document.getElementById("year-slider").value
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", "http://localhost:8080/tree_by_year?year="+year, true); // true = async / false = sync
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) { // on successful HTTP 200 OK response
+                    let xhr_result = xhr.responseText; // use JSON.Parse() if JSON responseText
+                    // do stuff
+                    console.log(xhr_result)
+                }
+            }
+        }
+        xhr.send();
+
+        let simple_chart_config = {
+            chart: {
+                container: "#tree-simple"
+            },
+            // nodestructure: nodes
+            nodeStructure: {
+                text: { name: "Parent node" },
+                children: [
+                    {
+                        text: { name: "First child" }
+                    },
+                    {
+                        text: { name: "Second child" }
+                    }
+                ]
+            }
+        };
+
+        let my_chart = new Treant(simple_chart_config);
+    </script>
+</body>
+</html>

@@ -93,6 +93,19 @@ def join_trees(trees):
     return tree
 
 
+def prune_tree(tree, min_count):
+    root = tree.copy()
+    if root['count'] < min_count:
+        return None
+    new_children = []
+    for child in root['children']:
+        new_child = prune_tree(child, min_count)
+        if new_child is None:
+            continue
+        new_children.append(new_child)
+    root['children'] = new_children
+    return root
+
 if __name__ == '__main__':
 
     sk = SkosmosClient()

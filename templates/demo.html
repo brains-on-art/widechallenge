@@ -21,7 +21,7 @@
         // fetch by year
         let year = document.getElementById("year-slider").value
         let xhr = new XMLHttpRequest();
-        xhr.open("GET", "http://localhost:8080/?year="+year, true); // true = async / false = sync
+        xhr.open("GET", "http://localhost:8080/tree_by_year?year="+year, true); // true = async / false = sync
         xhr.onreadystatechange = function () {
             if (xhr.readyState === XMLHttpRequest.DONE) {
                 if (xhr.status === 200) { // on successful HTTP 200 OK response

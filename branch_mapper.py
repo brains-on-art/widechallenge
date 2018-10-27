@@ -113,6 +113,19 @@ def prune_tree(tree, min_count):
     root['children'] = new_children
     return root
 
+def prune_tree_to_level(tree, max_level, level):
+    root = tree.copy()
+    if level < max_level:
+        new_children = []
+        for child in root['children']:
+            new_child = prune_tree_to_level(child, max_level, level+1)
+            new_children.append(new_child)
+    if level == max_level:
+        new_children = []
+    root['children'] = new_children
+    return root
+
+
 @memory.cache
 def get_tree(year):
     finna = FinnaClient()

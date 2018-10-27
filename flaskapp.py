@@ -25,10 +25,10 @@ def dynamic():
 
 @app.route('/graph_by_year', methods=['GET'])
 def graph_by_year():
-    year = request.args.get('year')
-    width = request.args.get('width')
-    height = requests.args.get('height')
+    year = int(request.args.get('year'))
+    width = float(request.args.get('width'))
+    height = float(request.args.get('height'))
     if year < 1900:
-        return jsonify({'success': True, 'tree': get_graph_output(year,width,height)}), 200
+        return jsonify({'success': True, 'graph': get_graph_output(year,width,height)}), 200
     else:
         return jsonify({'success': False}), 400

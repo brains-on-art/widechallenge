@@ -4,19 +4,14 @@
     <meta charset="utf-8"/>
     <title>Ontology Yggdrasil</title>
     <!-- stylesheets -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.css" type="text/css"/>
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.css" type="text/css"/> -->
 </head>
 <body>
-    <label>
     <input type="range" id="year-slider" name="year-slider" min="1500" max="2018" value="2018" />
-    <div id="tree-simple" style="width:335px; height: 160px"> </div>
-
+    <br>
     <!-- javascript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.2.7/raphael.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.js"></script>
-    <!-- <script src="vendor/raphael.js"></script> -->
-    <!-- <script src="Treant.min.js"></script> -->
+    <script src="https://d3js.org/d3.v5.min.js"></script>
     <script>
         // fetch by year
         let year = document.getElementById("year-slider").value
@@ -33,25 +28,120 @@
         }
         xhr.send();
 
-        let simple_chart_config = {
-            chart: {
-                container: "#tree-simple"
-            },
-            // nodestructure: nodes
-            nodeStructure: {
-                text: { name: "Parent node" },
-                children: [
-                    {
-                        text: { name: "First child" }
-                    },
-                    {
-                        text: { name: "Second child" }
-                    }
-                ]
-            }
-        };
+        let dummydata = {
+            "name": "root1",
+            "children": [
+                {
+                    "name": "child1-1"
+                },
+                {
+                    "name": "child1-2",
+                    "children": [
+                        {
+                            "name": "child2-1"
+                        }
+                    ]
+                },
+                {
+                    "name": "child1-3",
+                    "children": [
+                        {
+                            "name": "child2-2",
+                            "children": [
+                                {
+                                    "name": "child3-1"
+                                },
+                                {
+                                    "name": "child3-2"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "child2-3"
+                        }
+                    ]
+                }
+            ]
+        }
 
-        let my_chart = new Treant(simple_chart_config);
+        const width = 1000
+
+        function tree(data) {
+            const root = d3.hierarchy(data);
+            root.dx = 25;
+            root.dy = width / (root.height + 1);
+            return d3.tree().nodeSize([root.dx, root.dy])(root);
+        }
+
+        function drawChart() {
+            const root = tree(dummydata);
+            console.log(root);
+            const margin = ({top: 10, right: 120, bottom: 10, left: 40})
+
+            let x0 = Infinity;
+            let x1 = -x0;
+            root.each(d => {
+                if (d.x > x1) x1 = d.x;
+                if (d.x < x0) x0 = d.x;
+            });
+            const height = x1 - x0 + root.dx * 2
+            console.log(height);
+
+            const svg = d3.select("body").append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                // .attr("viewBox", [-margin.left, -margin.top, width, height])
+                .attr("viewBox", [0, 0, width, height])
+                .style("font", "10px sans-serif")
+                .style("user-select", "none")
+                .style("width", "100%")
+                .style("height", "auto");
+
+            //const svg = d3.select("svg"(width, x1 - x0 + root.dx * 2))
+            //    .style("width", "100%")
+            //    .style("height", "auto");
+
+            const g = svg.append("g")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", 12)
+                .attr("transform", `translate(${root.dy / 3},${root.dx - x0})`);
+
+            const link = g.append("g")
+                .attr("fill", "none")
+                .attr("stroke", "#555")
+                .attr("stroke-opacity", 0.4)
+                .attr("stroke-width", 1.5)
+            .selectAll("path")
+                .data(root.links())
+                .enter().append("path")
+                    .attr("d", d3.linkHorizontal()
+                        .x(d => d.y)
+                        .y(d => d.x));
+
+            const node = g.append("g")
+                .attr("stroke-linejoin", "round")
+                .attr("stroke-width", 3)
+            .selectAll("g")
+                .data(root.descendants().reverse())
+                .enter().append("g")
+                    .attr("transform", d => `translate(${d.y},${d.x})`);
+
+            node.append("circle")
+                .attr("fill", d => d.children ? "#555" : "#999")
+                .attr("r", 2.5);
+
+            node.append("text")
+                .attr("dy", "0.31em")
+                .attr("x", d => d.children ? -6 : 6)
+                .attr("text-anchor", d => d.children ? "end" : "start")
+                .text(d => d.data.name)
+            .clone(true).lower()
+                .attr("stroke", "white");
+
+            return svg.node();
+        }
+
+        drawChart()
     </script>
 </body>
 </html>

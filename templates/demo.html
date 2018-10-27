@@ -97,8 +97,7 @@
                         .x(d => d.y)
                         .y(d => d.x))
                     .attr("stroke-width", d => Math.max(1, Math.log(d.source.data.count)*2))
-                    // .attr("opacity", d => Math.max(1, Math.log(d.source.data.count)*2));
-                    .attr("opacity", 0.4);
+                    .attr("opacity", 0.6);
 
             const node = g.append("g")
                 .attr("stroke-linejoin", "round")
@@ -114,7 +113,6 @@
                     if (d.depth < 4) return 2.5
                     else return d.data.count;
                 });
-                // .attr("r", 2.5);
 
             node.append("text")
                 .attr("dy", "0.31em")

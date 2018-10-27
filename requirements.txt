@@ -2,13 +2,14 @@ annif-client==0.2.5
 certifi==2018.10.15
 chardet==3.0.4
 Click==7.0
-finna-client==0.1.2
+git+git://github.com/alafuzof/Finna-client.git
 Flask==1.0.2
 Flask-Cors==3.0.6
 idna==2.7
 isodate==0.6.0
 itsdangerous==0.24
 Jinja2==2.10
+joblib==0.12.5
 MarkupSafe==1.0
 pyparsing==2.2.2
 rdflib==4.2.2

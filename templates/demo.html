@@ -9,7 +9,7 @@
 <body>
     <br>
     <label id="year-label" for="year-slider" style="font-size: 1em">Slide to choose year.</label>
-    <input type="range" id="year-slider" name="year-slider" min="1800" max="2018" value="2018" onchange="updateTree()" style="width:90%"/>
+    <input type="range" id="year-slider" name="year-slider" min="1800" max="2018" onchange="updateTree()" style="width:90%"/>
     <br>
     <!-- <p id="year-display">Current year: </p> -->
     <!-- javascript -->
@@ -145,87 +145,89 @@
         }
 
         function updateChart(data) {
-            // d3.select("svg").selectAll("g").remove();
-            // drawChart(data);
-            const root = tree(data);
-            const margin = ({top: 10, right: 120, bottom: 10, left: 40});
-
-            let x0 = Infinity;
-            let x1 = -x0;
-            root.each(d => {
-                if (d.x > x1) x1 = d.x;
-                if (d.x < x0) x0 = d.x;
-            });
-            const height = x1 - x0 + root.dx * 2
-
-            const svg = d3.select("svg")
-                .attr("width", width)
-                .attr("height", height)
-                .attr("viewBox", [0, 0, width, height])
-            const g = svg.select("g")
-                .attr("font-family", "sans-serif")
-                .attr("font-size", 6)
-                .attr("transform", `translate(${root.dy / 3},${root.dx - x0})`);
-
-            // LINKS / PATHS
-            const link = g.select("g")
-                .attr("fill", "none")
-                .attr("stroke", "#555")
-                .attr("opacity", 0.6)
-                .selectAll("path")
-                    .data(root.links());
-            //remove old
-            link.exit().remove();
-            //add new
-            link.enter().append("path")
-                .attr("d", d3.linkHorizontal()
-                    .x(d => d.y)
-                    .y(d => d.x))
-                .attr("stroke-width", d => Math.max(1, Math.log(d.source.data.count)*4));
-            //update existing
-            link.transition()
-                .duration(500)
-                .attr("d", d3.linkHorizontal()
-                    .x(d => d.y)
-                    .y(d => d.x))
-                .attr("stroke-width", d => Math.max(1, Math.log(d.source.data.count)*2));
-
-            // NODES / CIRCLES
-            const node = g.select("g").selectAll("node")
-                // .attr("stroke-linejoin", "round")
-                // .attr("stroke-width", 3)
-                .data(root.descendants().reverse());
-
-            //remove old
-            node.exit().remove();
-            //add new ones
-            node.enter().append("g")
-                    .attr("transform", d => `translate(${d.y},${d.x})`);
-
-            node.enter().append("circle")
-                .attr("fill", d => d.children ? "#555" : "#999")
-                .attr("r", function (d) {
-                    return 2.5;
-                    // if (d.depth < 4) return 2.5
-                    // else return d.data.count;
-                });
-
-            node.enter().append("text")
-                .attr("dy", "0.31em")
-                .attr("x", d => d.children ? -6 : 6)
-                .attr("text-anchor", d => d.children ? "end" : "start")
-                .attr("font-size", function (d) {
-                    if (d.depth < 4) return 6
-                    else if (d.data.count < 6) return 5
-                    else return d.data.count;
-                })
-                .text(d => d.data.prefLabel)
-            .clone(true).lower()
-                .attr("stroke", "white");
-
-            node.transition()
-                .duration(500)
-                .attr("transform", d => `translate(${d.y},${d.x})`);
+            d3.select("svg").selectAll("g").remove();
+            drawChart(data);
+            // const root = tree(data);
+            // const margin = ({top: 10, right: 120, bottom: 10, left: 40});
+            //
+            // let x0 = Infinity;
+            // let x1 = -x0;
+            // root.each(d => {
+            //     if (d.x > x1) x1 = d.x;
+            //     if (d.x < x0) x0 = d.x;
+            // });
+            // const height = x1 - x0 + root.dx * 2
+            //
+            // const svg = d3.select("svg")
+            //     .attr("width", width)
+            //     .attr("height", height)
+            //     .attr("viewBox", [0, 0, width, height])
+            // const g = svg.select("g")
+            //     .attr("font-family", "sans-serif")
+            //     .attr("font-size", 6)
+            //     .attr("transform", `translate(${root.dy / 3},${root.dx - x0})`);
+            //
+            // // LINKS / PATHS
+            // const link = g.select("g")
+            //     .attr("fill", "none")
+            //     .attr("stroke", "#555")
+            //     .attr("opacity", 0.6)
+            //     .selectAll("path")
+            //         .data(root.links());
+            // //remove old
+            // link.exit().remove();
+            // //add new
+            // link.enter().append("path")
+            //     .attr("d", d3.linkHorizontal()
+            //         .x(d => d.y)
+            //         .y(d => d.x))
+            //     .attr("stroke-width", d => Math.max(1, Math.log(d.source.data.count)*4));
+            // //update existing
+            // link.transition()
+            //     .duration(500)
+            //     .attr("d", d3.linkHorizontal()
+            //         .x(d => d.y)
+            //         .y(d => d.x))
+            //     .attr("stroke-width", d => Math.max(1, Math.log(d.source.data.count)*2));
+            //
+            // // NODES / CIRCLES
+            // const node = g.select("g").selectAll("node")
+            //     // .attr("stroke-linejoin", "round")
+            //     // .attr("stroke-width", 3)
+            //     .data(root.descendants().reverse());
+            //
+            // //remove old
+            // node.exit().remove();
+            // //add new ones
+            // node.enter().append("g")
+            //         .attr("transform", d => `translate(${d.y},${d.x})`);
+            //
+            // node.enter().append("circle")
+            //     .attr("fill", d => d.children ? "#555" : "#999")
+            //     .attr("r", function (d) {
+            //         return 2.5;
+            //         // if (d.depth < 4) return 2.5
+            //         // else return d.data.count;
+            //     });
+            //
+            // node.enter().append("text")
+            //     .attr("dy", "0.31em")
+            //     .attr("x", d => d.children ? -6 : 6)
+            //     .attr("text-anchor", d => d.children ? "end" : "start")
+            //     .attr("font-size", function (d) {
+            //         if (d.depth < 4) return 6
+            //         else if (d.data.count < 6) return 5
+            //         else return d.data.count;
+            //     })
+            //     .text(d => d.data.prefLabel)
+            // .clone(true).lower()
+            //     .attr("stroke", "white");
+            //
+            // node.transition()
+            //     .duration(500)
+            //     .attr("transform", d => `translate(${d.y},${d.x})`);
+            //
+            // location = location;
         }
     </script>
     <svg></svg>

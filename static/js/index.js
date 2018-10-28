@@ -49,6 +49,13 @@ particle = {
   i: 0
 };
 
+function gaussian(scale=1.0) {
+  let u = Math.random();
+  let v = Math.random();
+  return [Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)*scale,
+          Math.sqrt(-2*Math.log(u))*Math.sin(2*Math.PI*v)*scale];
+}
+
 function init() {
 
   container = document.getElementById('container');
@@ -94,10 +101,11 @@ function init_particles(graph_p, graph_n, graph_e) {
     let count = group["count"];
     for(j = 0; j < count; j++) {
         p = Object.create(particle);
-        p.x = group["path"][0][0] + Math.random() * 10;
-        p.y = group["path"][0][1] + Math.random() * 10;
-        p.ox = group["path"].slice(1).map(x => x[0] + Math.random() * 10);
-        p.oy = group["path"].slice(1).map(x => x[1] + Math.random() * 10 + 5);
+        [dx, dy] = gaussian(3.0);
+        p.x = group["path"][0][0] + dx;
+        p.y = group["path"][0][1] + dy;
+        p.ox = group["path"].slice(1).map(x => x[0] + dx);
+        p.oy = group["path"].slice(1).map(x => x[1] + dy + 5);
         list[ind++] = p;
     }
   }
@@ -160,6 +168,10 @@ function step() {
           continue;
       }
       b[n = ( ~~p.x + ( ~~p.y * w ) ) * 4] = b[n+1] = b[n+2] = COLOR, b[n+3] = 255;
+      b[n = ( (~~p.x-1) + ( ~~p.y * w ) ) * 4] = b[n+1] = b[n+2] = COLOR, b[n+3] = 255;
+      b[n = ( (~~p.x+1) + ( ~~p.y * w ) ) * 4] = b[n+1] = b[n+2] = COLOR, b[n+3] = 255;
+      b[n = ( ~~p.x + ( (~~p.y-1) * w ) ) * 4] = b[n+1] = b[n+2] = COLOR, b[n+3] = 255;
+      b[n = ( ~~p.x + ( (~~p.y+1) * w ) ) * 4] = b[n+1] = b[n+2] = COLOR, b[n+3] = 255;
 
 
     }

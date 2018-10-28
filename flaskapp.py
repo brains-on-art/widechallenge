@@ -28,7 +28,7 @@ def graph_by_year():
     year = int(request.args.get('year'))
     width = float(request.args.get('width'))
     height = float(request.args.get('height'))
-    if year < 1900:
+    if year < 2019:
         return jsonify({'success': True, 'graph': get_graph_output(year,width,height)}), 200
     else:
         return jsonify({'success': False}), 400

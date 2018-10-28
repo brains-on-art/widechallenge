@@ -127,7 +127,14 @@
                     // else return d.data.count;
                 });
 
-            node.append("text")
+            let searchlink = node.append("a")
+                .attr("xlink:href", function (d) {
+                    var year = document.getElementById("year-slider").value
+                    return "https://finna.fi/Search/Results?limit=0&filter%5B%5D=%7Eformat%3A%220%2FImage%2F%22&join=AND&bool0%5B%5D=AND&lookfor0%5B%5D="+d.data.prefLabel+"&type0%5B%5D=Subject&filter[]=search_daterange_mv:%22["+year+"%20TO%20"+year+"]%22&search_daterange_mv_type=within";
+                    // return "https://finna.fi/Search/Results?limit=0&join=AND&bool0%5B%5D=AND&lookfor0%5B%5D="+d.data.prefLabel+"&type0%5B%5D=Subject&filter[]=search_daterange_mv:%22["+year+"%20TO%20"+year+"]%22&search_daterange_mv_type=within";
+                });
+
+            searchlink.append("text")
                 .attr("dy", "0.31em")
                 .attr("x", d => d.children ? -6 : 6)
                 .attr("text-anchor", d => d.children ? "end" : "start")
@@ -137,7 +144,9 @@
                     else if (d.data.count > 40) return 40
                     else return d.data.count;
                 })
-                .text(d => d.data.prefLabel)
+                .text(function (d) {
+                    return d.data.prefLabel
+                })
             .clone(true).lower()
                 .attr("stroke", "white");
 

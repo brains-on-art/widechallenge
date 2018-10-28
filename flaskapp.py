@@ -14,7 +14,7 @@ def index():
 def tree_by_year():
     """GET with a year as a query param"""
     year= request.args.get('year')
-    if int(year) < 1900:
+    if int(year) < 2019:
         return jsonify({'success': True, 'tree': get_tree(year)}), 200
     else:
         return jsonify({'success': False}), 400

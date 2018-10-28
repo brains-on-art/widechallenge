@@ -19,9 +19,29 @@
         // fetch data for current year
         window.addEventListener("load", function (e) {
             console.log("document loaded!");
-            updateTree();
+            newTree();
         })
 
+        function newTree() {
+            // get current slider year and update display
+            let year = document.getElementById("year-slider").value
+            let yeardisplay = document.getElementById("year-label");
+            yeardisplay.innerHTML = "Slide to choose year. Current: <strong>" + year + "</strong>";
+            console.log("fetching data: ", year);
+
+            // actually request the data for the year from backend
+            let xhr = new XMLHttpRequest();
+            xhr.open("GET", "http://localhost:8080/tree_by_year?year="+year, true); // true = async / false = sync
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) { // on successful HTTP 200 OK response
+                        let xhr_result = JSON.parse(xhr.responseText);
+                        drawChart(xhr_result.tree) // [1] is "oliot"
+                    }
+                }
+            }
+            xhr.send();
+        }
         function updateTree() {
             // get current slider year and update display
             let year = document.getElementById("year-slider").value
@@ -36,7 +56,7 @@
                 if (xhr.readyState === XMLHttpRequest.DONE) {
                     if (xhr.status === 200) { // on successful HTTP 200 OK response
                         let xhr_result = JSON.parse(xhr.responseText);
-                        drawChart(xhr_result.tree.children[1]) // [1] is "oliot"
+                        updateChart(xhr_result.tree) // [1] is "oliot"
                     }
                 }
             }
@@ -46,24 +66,16 @@
         const width = 1000;
 
         function tree(data) {
+            // console.log(data);
             const root = d3.hierarchy(data);
             root.dx = 15;
             root.dy = width / (root.height + 1);
             return d3.tree().nodeSize([root.dx, root.dy])(root);
         }
 
-        function mouseovered(active) {
-            return function(d) {
-                d3.select(this).classed("label--active", active);
-                d3.select(d.linkExtensionNode).classed("link-extension--active", active).raise();
-                do d3.select(d.linkNode).classed("link--active", active).raise();
-                while (d = d.parent);
-            };
-        }
-
         function drawChart(data) {
             const root = tree(data);
-            const margin = ({top: 10, right: 120, bottom: 10, left: 40})
+            const margin = ({top: 10, right: 120, bottom: 10, left: 40});
 
             let x0 = Infinity;
             let x1 = -x0;
@@ -96,13 +108,13 @@
                     .attr("d", d3.linkHorizontal()
                         .x(d => d.y)
                         .y(d => d.x))
-                    .attr("stroke-width", d => Math.max(1, Math.log(d.source.data.count)*2))
+                    .attr("stroke-width", d => Math.max(1, Math.log(d.source.data.count)*3))
                     .attr("opacity", 0.6);
 
             const node = g.append("g")
                 .attr("stroke-linejoin", "round")
                 .attr("stroke-width", 3)
-            .selectAll("g")
+            .selectAll("node")
                 .data(root.descendants().reverse())
                 .enter().append("g")
                     .attr("transform", d => `translate(${d.y},${d.x})`);
@@ -110,11 +122,95 @@
             node.append("circle")
                 .attr("fill", d => d.children ? "#555" : "#999")
                 .attr("r", function (d) {
-                    if (d.depth < 4) return 2.5
-                    else return d.data.count;
+                    return 2.5;
+                    // if (d.depth < 4) return 2.5
+                    // else return d.data.count;
                 });
 
             node.append("text")
+                .attr("dy", "0.31em")
+                .attr("x", d => d.children ? -6 : 6)
+                .attr("text-anchor", d => d.children ? "end" : "start")
+                .attr("font-size", function (d) {
+                    if (d.depth < 4) return 6
+                    else if (d.data.count < 6) return 5
+                    else if (d.data.count > 40) return 40
+                    else return d.data.count;
+                })
+                .text(d => d.data.prefLabel)
+            .clone(true).lower()
+                .attr("stroke", "white");
+
+            return svg.node();
+        }
+
+        function updateChart(data) {
+            // d3.select("svg").selectAll("g").remove();
+            // drawChart(data);
+            const root = tree(data);
+            const margin = ({top: 10, right: 120, bottom: 10, left: 40});
+
+            let x0 = Infinity;
+            let x1 = -x0;
+            root.each(d => {
+                if (d.x > x1) x1 = d.x;
+                if (d.x < x0) x0 = d.x;
+            });
+            const height = x1 - x0 + root.dx * 2
+
+            const svg = d3.select("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .attr("viewBox", [0, 0, width, height])
+            const g = svg.select("g")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", 6)
+                .attr("transform", `translate(${root.dy / 3},${root.dx - x0})`);
+
+            // LINKS / PATHS
+            const link = g.select("g")
+                .attr("fill", "none")
+                .attr("stroke", "#555")
+                .attr("opacity", 0.6)
+                .selectAll("path")
+                    .data(root.links());
+            //remove old
+            link.exit().remove();
+            //add new
+            link.enter().append("path")
+                .attr("d", d3.linkHorizontal()
+                    .x(d => d.y)
+                    .y(d => d.x))
+                .attr("stroke-width", d => Math.max(1, Math.log(d.source.data.count)*4));
+            //update existing
+            link.transition()
+                .duration(500)
+                .attr("d", d3.linkHorizontal()
+                    .x(d => d.y)
+                    .y(d => d.x))
+                .attr("stroke-width", d => Math.max(1, Math.log(d.source.data.count)*2));
+
+            // NODES / CIRCLES
+            const node = g.select("g").selectAll("node")
+                // .attr("stroke-linejoin", "round")
+                // .attr("stroke-width", 3)
+                .data(root.descendants().reverse());
+
+            //remove old
+            node.exit().remove();
+            //add new ones
+            node.enter().append("g")
+                    .attr("transform", d => `translate(${d.y},${d.x})`);
+
+            node.enter().append("circle")
+                .attr("fill", d => d.children ? "#555" : "#999")
+                .attr("r", function (d) {
+                    return 2.5;
+                    // if (d.depth < 4) return 2.5
+                    // else return d.data.count;
+                });
+
+            node.enter().append("text")
                 .attr("dy", "0.31em")
                 .attr("x", d => d.children ? -6 : 6)
                 .attr("text-anchor", d => d.children ? "end" : "start")
@@ -127,7 +223,9 @@
             .clone(true).lower()
                 .attr("stroke", "white");
 
-            return svg.node();
+            node.transition()
+                .duration(500)
+                .attr("transform", d => `translate(${d.y},${d.x})`);
         }
     </script>
     <svg></svg>

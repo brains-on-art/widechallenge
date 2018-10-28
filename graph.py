@@ -29,17 +29,18 @@ def get_graph_output(year, width, height):
     pos = nx.nx_agraph.graphviz_layout(graph, root='root', prog='neato')
     pos_x = [xy[0] for xy in pos.values()]
     pos_y = [xy[1] for xy in pos.values()]
-    x_factor = (max(pos_x) - min(pos_x)) / width
-    y_factor = (max(pos_y) - min(pos_y)) / height
+    x_factor = (max(pos_x) - min(pos_x)) / (width*0.8)
+    y_factor = (max(pos_y) - min(pos_y)) / (height*0.8)
     pos = {key: ((pos[0] - mean(pos_x)) / x_factor + width / 2, (pos[1] - mean(pos_y)) / y_factor + height / 2) for
            key, pos in pos.items()}
-    # print(pos)
+
     pos_paths = {key: [pos[x] for x in path] for key, path in paths.items()}
     res = {}
 
     res['particles'] = [{'node': key, 'path': pos_paths[key], 'count': counts[key]} for key in counts.keys() if
                         counts[key] > 0]
     res['nodes'] = [{'label': key, 'position': value} for key,value in pos.items()]
+    res['edges'] = [(pos[e[0]], pos[e[1]]) for e in graph.edges()]
 
     return res
 

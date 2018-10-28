@@ -36,7 +36,8 @@ var NUM_PARTICLES = ( ( ROWS = 100 ) * ( COLS = 300 ) ),
     p, s,
     r, c,
     num_particles,
-    nodes
+    nodes,
+    edges
     ;
 
 particle = {
@@ -82,7 +83,7 @@ function init() {
   num_particles = NUM_PARTICLES;
 }
 
-function init_particles(graph_p, graph_n) {
+function init_particles(graph_p, graph_n, graph_e) {
   console.log("Initing particles");
   list = [];
   console.log("Received ", graph_p.length, " particle groups");
@@ -104,34 +105,7 @@ function init_particles(graph_p, graph_n) {
   num_particles = list.length;
 
   nodes = graph_n;
-  /*for ( i = 0; i < num_particles; i++ ) {
-    
-    p = Object.create( particle );
-    p.x = 400 + Math.random()*50;
-    p.y = h - 50 + Math.random()*50;
-    //p.x = p.ox = MARGIN + SPACING * ( i % COLS );
-    //p.y = p.oy = MARGIN + SPACING * Math.floor( i / COLS );
-    r = Math.random();
-    if(r < 0.005) {
-      p.ox = [200 + Math.random()*20, 50 + Math.random()*20];
-      p.oy = [300 + Math.random()*20, 50 + Math.random()*20];
-    } else if(r >= 0.005 && r < 0.5) {
-      p.ox = [200 + Math.random()*20, 350 + Math.random()*20];
-      p.oy = [300 + Math.random()*20, 50 + Math.random()*20];
-      //p.ox = w - 50 + Math.random()*20;
-      //p.oy = 50 + Math.random()*20
-    } else if(r >= 0.5 && r < 0.75) {
-       p.ox = [600 + Math.random()*20, 450 + Math.random()*20];
-       p.oy = [300 + Math.random()*20, 50 + Math.random()*20];
-    } else if (r >= 0.75) {
-       p.ox = [600 + Math.random()*20, 750 + Math.random()*20];
-       p.oy = [300 + Math.random()*20, 50 + Math.random()*20];
-    }
-    //p.ox = MARGIN + SPACING * ( i % COLS );
-    //p.oy = MARGIN + SPACING * Math.floor( i / COLS );
-    
-    list[i] = p;
-  }*/
+  edges = graph_e;
   step();
 }
 
@@ -195,12 +169,21 @@ function step() {
     ctx.fillStyle = "white";
     //ctx.font = '48px serif';
     ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
     for (i=0; i < nodes.length; i++) {
       x = nodes[i]["position"][0];
       y = nodes[i]["position"][1];
       ctx.fillText("●", x, y)
       ctx.fillText(nodes[i]["label"], x, y-10);
     }
+
+    ctx.strokeStyle = "white";
+    ctx.beginPath();
+    for(i=0; i < edges.length; i++) {
+      ctx.moveTo(edges[i][0][0], edges[i][0][1]);
+      ctx.lineTo(edges[i][1][0], edges[i][1][1]);
+    }
+    ctx.stroke();
   }
 
   if ( stats ) stats.end();

@@ -156,7 +156,7 @@ html, body {
                     if (xhr.status === 200) { // on successful HTTP 200 OK response
                         let xhr_result = JSON.parse(xhr.responseText);
                         console.log(xhr_result);
-                        init_particles(xhr_result["graph"]["particles"], xhr_result["graph"]["nodes"]);
+                        init_particles(xhr_result["graph"]["particles"], xhr_result["graph"]["nodes"], xhr_result["graph"]["edges"]);
                     }
                 }
             };

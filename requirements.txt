@@ -9,7 +9,7 @@ Flask-Cors==3.0.6
 idna==2.7
 isodate==0.6.0
 itsdangerous==0.24
-Jinja2==2.10
+Jinja2==2.11.3
 joblib==0.12.5
 MarkupSafe==1.0
 networkx==2.2
